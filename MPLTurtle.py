@@ -12,14 +12,25 @@ class MPLTurtle:
         self.__y = 0
         self.__angle = 0
         self.__stack = Stack()
-        self.__lines = []
+        self.__lines = None
+        self.__lineCounter = 0
 
         self.__sin = 0.0
         self.__cos = 1.0
 
+    def initLineArray(self, length: int):
+        self.__lines = np.zeros((length, 2, 2))
+
     def __addLine(self, curX: float, curY: float, nextX: float, nextY: float):
-        line = [(curX, curY), (nextX, nextY)]
-        self.__lines.append(line)        
+        if (not isinstance(self.__lines, np.ndarray)):
+            raise RuntimeError("Line array not initialised. Run initLineArray() first")
+        
+        self.__lines[self.__lineCounter, 0, 0] = curX
+        self.__lines[self.__lineCounter, 0, 1] = curY
+        self.__lines[self.__lineCounter, 1, 0] = nextX
+        self.__lines[self.__lineCounter, 1, 1] = nextY
+
+        self.__lineCounter += 1
 
     def setAngle(self, angle: float):
         self.__angle = angle
@@ -54,7 +65,7 @@ class MPLTurtle:
         transfrom = self.__stack.pop()
         self.__x = transfrom[0]
         self.__y = transfrom[1]
-        self.__angle = transfrom[2]
+        self.setAngle(transfrom[2])
 
     def draw(self):
         linesToDraw = LineCollection(self.__lines)

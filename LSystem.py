@@ -1,4 +1,3 @@
-from MyTurtle import MyTurtle
 from MPLTurtle import MPLTurtle
 from Stack import Stack
 from AlphabetFunction import AlphabetFunction
@@ -37,7 +36,11 @@ class LSystem:
             self.createNextGeneration()
 
 
-    def executeCurrentGeneration(self):
+    def executeCurrentGeneration(self, turtle: MPLTurtle):
+        # TODO make less alphabet specific
+        noLines = self.__currentGeneration.count("F")
+        turtle.initLineArray(noLines)
+
         for character in self.__currentGeneration:
             func = self.__alphabet[character]
 
@@ -68,7 +71,9 @@ productionRules = {
 
 lSystem = LSystem(alphabet, "X", productionRules)
 
-lSystem.createNthGeneration(10)
-lSystem.executeCurrentGeneration()
-
+start = time.time()
+lSystem.createNthGeneration(15)
+print(time.time() - start)
+lSystem.executeCurrentGeneration(t)
+print(time.time() - start)
 t.draw()
