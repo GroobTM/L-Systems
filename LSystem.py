@@ -1,4 +1,5 @@
 from MyTurtle import MyTurtle
+from MPLTurtle import MPLTurtle
 from Stack import Stack
 from ProductionRule import ProductionRule
 from AlphabetFunction import AlphabetFunction
@@ -55,7 +56,7 @@ class LSystem:
         return self.__currentGeneration
 
 
-t = MyTurtle()
+t = MPLTurtle()
 
 alphabet = {
     "F" : AlphabetFunction(t.moveForward, 10),
@@ -75,8 +76,7 @@ productionRules = [
 
 lSystem = LSystem(alphabet, "X", productionRules)
 
-lSystem.createNthGeneration(10)
+lSystem.createNthGeneration(14)
 lSystem.executeCurrentGeneration()
 
-t.resizeCanvas()
-t.loop()
+t.draw()
