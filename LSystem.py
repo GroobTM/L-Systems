@@ -1,11 +1,12 @@
 from MyTurtle import MyTurtle
 from MPLTurtle import MPLTurtle
 from Stack import Stack
-from ProductionRule import ProductionRule
 from AlphabetFunction import AlphabetFunction
 
+import time
+
 class LSystem:
-    def __init__(self, alphabet: dict, axiom: str, productionRules: list):
+    def __init__(self, alphabet: dict, axiom: str, productionRules: dict):
         self.__alphabet = alphabet
         self.__axiom = axiom
         self.__productionRules = productionRules
@@ -14,21 +15,12 @@ class LSystem:
         self.__generationCount = 0
 
     def createNextGeneration(self):
-        nextGeneration = ""
+        nextGeneration = []
 
         for character in self.__currentGeneration:
-            ruleExists = False
+            nextGeneration.append(self.__productionRules.get(character, character))
 
-            for rule in self.__productionRules:
-                if (rule.matchesInitialPattern(character)):
-                    ruleExists = True
-                    nextGeneration += rule.finalPattern
-                    break
-
-            if (not ruleExists):
-                nextGeneration += character
-
-        self.__currentGeneration = nextGeneration
+        self.__currentGeneration = "".join(nextGeneration)
         self.__generationCount += 1
 
 
@@ -67,16 +59,16 @@ alphabet = {
     "X" : None
 }
 
-productionRules = [
-    ProductionRule("X", "F[+X][-X]FX"),
-    ProductionRule("F", "FF")
-]
+productionRules = {
+    "X": "F[+X][-X]FX",
+    "F": "FF"
+}
 
 
 
 lSystem = LSystem(alphabet, "X", productionRules)
 
-lSystem.createNthGeneration(14)
+lSystem.createNthGeneration(10)
 lSystem.executeCurrentGeneration()
 
 t.draw()
