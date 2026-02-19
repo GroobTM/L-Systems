@@ -1,47 +1,44 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from copy import copy
 from matplotlib.collections import LineCollection
 from math import sin, cos, radians
 
-from Transform import Transform
 from Stack import Stack
 
 class MPLTurtle:
     def __init__(self):
-        self.__transform = Transform(0, 0, 0)
+        self.__x = 0
+        self.__y = 0
+        self.__angle = 0
         self.__stack = Stack()
         self.__lines = []
 
+        self.__sin = 0.0
+        self.__cos = 1.0
+
     def __addLine(self, curX: float, curY: float, nextX: float, nextY: float):
         line = [(curX, curY), (nextX, nextY)]
-        self.__lines.append(line)
-
-    def __updateTransform(self, newX: float = None, newY: float = None, newAngle: float = None):
-        if (newX != None and newY != None):
-            self.__transform.setPosition(newX, newY)
-        
-        if (newAngle != None):
-            self.__transform.setAngle(newAngle)
-
-    def moveTo(self, x: float, y: float):
-        oldX, oldY = self.__transform.getPosition()
-        self.__addLine(oldX, oldY, x, y)
-        self.__updateTransform(newX = x, newY = y)
-
-    def moveForward(self, distance: float):
-        x, y = self.__transform.getPosition()
-        angle = radians(self.__transform.getAngle())
-        x += distance * cos(angle)
-        y += distance * sin(angle)
-        self.moveTo(x, y)
+        self.__lines.append(line)        
 
     def setAngle(self, angle: float):
-        self.__updateTransform(newAngle = angle)
+        self.__angle = angle
+        self.__sin = sin(radians(angle))
+        self.__cos = cos(radians(angle))
+
+    def moveTo(self, x: float, y: float):
+        self.__addLine(self.__x, self.__y, x, y)
+        self.__x = x
+        self.__y = y
+
+    def moveForward(self, distance: float):
+        x, y = self.__x, self.__y
+        x += distance * self.__cos
+        y += distance * self.__sin
+        self.moveTo(x, y)
 
     def addAngle(self, angle: float):
-        angle += self.__transform.getAngle()
+        angle += self.__angle
         self.setAngle(angle)
 
     def turnLeft(self, angle: float):
@@ -51,11 +48,13 @@ class MPLTurtle:
         self.addAngle(-angle)
 
     def pushState(self):
-        self.__stack.push(copy(self.__transform))
+        self.__stack.push((self.__x, self.__y, self.__angle))
 
     def popState(self):
         transfrom = self.__stack.pop()
-        self.__transform.setFromTransform(transfrom)
+        self.__x = transfrom[0]
+        self.__y = transfrom[1]
+        self.__angle = transfrom[2]
 
     def draw(self):
         linesToDraw = LineCollection(self.__lines)
