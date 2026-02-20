@@ -1,5 +1,5 @@
 from MPLTurtle import MPLTurtle
-from Stack import Stack
+from VisPyTurtle import VisPyTurtle
 from AlphabetFunction import AlphabetFunction
 
 import time
@@ -51,7 +51,7 @@ class LSystem:
         return self.__currentGeneration
 
 
-t = MPLTurtle()
+t = VisPyTurtle()
 
 alphabet = {
     "F" : AlphabetFunction(t.moveForward, 10),
@@ -72,8 +72,9 @@ productionRules = {
 lSystem = LSystem(alphabet, "X", productionRules)
 
 start = time.time()
-lSystem.createNthGeneration(15)
+lSystem.createNthGeneration(10)
 print(time.time() - start)
 lSystem.executeCurrentGeneration(t)
 print(time.time() - start)
 t.draw()
+print(time.time() - start)
