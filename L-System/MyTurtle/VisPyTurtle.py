@@ -1,4 +1,6 @@
-from vispy import app, scene
+from vispy import use, app, scene
+# Make VisPy use glfw
+use(app="glfw")
 
 from .MyTurtle import MyTurtle
 
