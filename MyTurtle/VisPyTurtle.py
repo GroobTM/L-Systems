@@ -1,6 +1,6 @@
 from vispy import app, scene
 
-from MyTurtle import MyTurtle
+from .MyTurtle import MyTurtle
 
 class VisPyTurtle(MyTurtle):
     def __init__(self):

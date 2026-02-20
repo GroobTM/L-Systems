@@ -1,5 +1,5 @@
-from MPLTurtle import MPLTurtle
-from VisPyTurtle import VisPyTurtle
+from MyTurtle.MPLTurtle import MPLTurtle
+from MyTurtle.VisPyTurtle import VisPyTurtle
 from AlphabetFunction import AlphabetFunction
 
 import time

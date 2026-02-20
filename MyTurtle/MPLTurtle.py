@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 from matplotlib.collections import LineCollection
 
-from MyTurtle import MyTurtle
+from .MyTurtle import MyTurtle
 
 class MPLTurtle(MyTurtle):
     def __init__(self):

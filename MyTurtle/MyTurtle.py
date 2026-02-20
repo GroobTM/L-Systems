@@ -3,7 +3,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from math import sin, cos, radians
 
-from Stack import Stack
+from .Stack import Stack
 
 class MyTurtle(ABC):
     def __init__(self):
