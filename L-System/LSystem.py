@@ -1,8 +1,4 @@
-from MyTurtle.MPLTurtle import MPLTurtle
-from MyTurtle.VisPyTurtle import VisPyTurtle
-from AlphabetFunction import AlphabetFunction
-
-import time
+from MyTurtle.MyTurtle import MyTurtle
 
 class LSystem:
     def __init__(self, alphabet: dict, axiom: str, productionRules: dict):
@@ -36,7 +32,7 @@ class LSystem:
             self.createNextGeneration()
 
 
-    def executeCurrentGeneration(self, turtle: MPLTurtle):
+    def executeCurrentGeneration(self, turtle: MyTurtle):
         # TODO make less alphabet specific
         noLines = self.__currentGeneration.count("F")
         turtle.initLineArray(noLines)
@@ -49,32 +45,3 @@ class LSystem:
 
     def getCurrentGeneration(self) -> str:
         return self.__currentGeneration
-
-
-t = VisPyTurtle()
-
-alphabet = {
-    "F" : AlphabetFunction(t.moveForward, 10),
-    "+" : AlphabetFunction(t.turnLeft, 30),
-    "-" : AlphabetFunction(t.turnRight, 30),
-    "[" : AlphabetFunction(t.pushState),
-    "]" : AlphabetFunction(t.popState),
-    "X" : None
-}
-
-productionRules = {
-    "X": "F[+X][-X]FX",
-    "F": "FF"
-}
-
-
-
-lSystem = LSystem(alphabet, "X", productionRules)
-
-start = time.time()
-lSystem.createNthGeneration(10)
-print(time.time() - start)
-lSystem.executeCurrentGeneration(t)
-print(time.time() - start)
-t.draw()
-print(time.time() - start)
