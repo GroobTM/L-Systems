@@ -19,6 +19,7 @@ class MyTurtle(ABC):
 
     def initLineArray(self, length: int):
         self.__lines = np.zeros((length, 2, 2))
+        self.__lineCounter = 0
 
     def __addLine(self, curX: float, curY: float, nextX: float, nextY: float):
         if (not isinstance(self.__lines, np.ndarray)):

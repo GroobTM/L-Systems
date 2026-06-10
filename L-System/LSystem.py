@@ -45,3 +45,6 @@ class LSystem:
 
     def getCurrentGeneration(self) -> str:
         return self.__currentGeneration
+    
+    def getCurrentGenerationCount(self) -> int:
+        return self.__generationCount
