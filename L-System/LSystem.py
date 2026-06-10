@@ -32,9 +32,10 @@ class LSystem:
             self.createNextGeneration()
 
 
-    def executeCurrentGeneration(self, turtle: MyTurtle):
-        # TODO make less alphabet specific
-        noLines = self.__currentGeneration.count("F")
+    def executeCurrentGeneration(self, turtle: MyTurtle, forwardCharacters: list[str]):
+        noLines = 0 
+        for character in forwardCharacters:
+            noLines += self.__currentGeneration.count(character)
         turtle.initLineArray(noLines)
 
         for character in self.__currentGeneration:

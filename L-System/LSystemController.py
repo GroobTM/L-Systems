@@ -8,6 +8,7 @@ from LSystem import LSystem
 # TODO Add check for alphabet and axiom/rule compatibility
 # TODO Add getter/setters for production rules
 # TODO Add return to default method
+# TODO Change options into enum
 
 class LSystemController:
     def __init__(self):
@@ -50,12 +51,12 @@ class LSystemController:
 
     def resetGeneration(self):
         self.__lSystem.createNthGeneration(0)
-        self.__lSystem.executeCurrentGeneration(self.__turtle)
+        self.__lSystem.executeCurrentGeneration(self.__turtle, ["F"])
         self.__turtle.resetCanvas()
 
     def generateNextGeneration(self):
         self.__lSystem.createNextGeneration()
-        self.__lSystem.executeCurrentGeneration(self.__turtle)
+        self.__lSystem.executeCurrentGeneration(self.__turtle, ["F"])
         self.__turtle.resetCanvas()
 
     def getCurrentGeneration(self) -> str:
