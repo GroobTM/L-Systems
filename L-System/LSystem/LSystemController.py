@@ -1,14 +1,11 @@
-from random import seed
+from random import seed, randrange
+from copy import deepcopy
+from sys import maxsize
 
 from .AlphabetFunction import AlphabetFunction
 from .AlphabetOption import AlphabetOption
 from .LSystem import LSystem
 from MyTurtle.ImGuiTurtle import ImGuiTurtle
-
-# TODO Add seed set
-# TODO Add check for alphabet and axiom/rule compatibility
-# TODO Add getter/setters for production rules
-# TODO Add return to default method
 
 class LSystemController:
     def __init__(self):
@@ -31,36 +28,45 @@ class LSystemController:
             "]" : self.__alphabetOptions[AlphabetOption.POP].useFunction(),
             "X" : self.__alphabetOptions[AlphabetOption.STOP].useFunction()
         }
-        self.__alphabet = self.__defaultAlphabet.copy()
 
         self.__defaultForwardAlphabet = ["F"]
-        self.__forwardAlphabet = self.__defaultForwardAlphabet.copy()
 
         self.__defaultProductionRules = {
-            "X": "F[+X][-X]FX",
-            "F": "FF"
+            "X": ["F[+X][-X]FX", "X"],
+            "F": ["FF"]
         }
-        self.__productionRules = self.__defaultProductionRules.copy()
 
         self.__defaultAxiom = "X"
-        self.__axiom = self.__defaultAxiom
 
-        self.__seed = -1
-
+        self.randomiseSeed()
+        self.setToDefaults()
         self.resetLSystem()
+
+    def setToDefaults(self):
+        self.__alphabet = self.__defaultAlphabet.copy()
+        self.__forwardAlphabet = self.__defaultForwardAlphabet.copy()
+        self.__productionRules = deepcopy(self.__defaultProductionRules)
+        self.__axiom = self.__defaultAxiom
 
     def resetLSystem(self):
         self.__lSystem = LSystem(self.__alphabet.copy(), self.__axiom, self.__productionRules.copy())
-
-    def resetGeneration(self):
-        self.__lSystem.createNthGeneration(0)
-        self.__lSystem.executeCurrentGeneration(self.__turtle, self.__forwardAlphabet)
-        self.__turtle.resetCanvas()
+        self.__resetToSeed()
 
     def generateNextGeneration(self):
         self.__lSystem.createNextGeneration()
         self.__lSystem.executeCurrentGeneration(self.__turtle, self.__forwardAlphabet)
         self.__turtle.resetCanvas()
+
+    def generateNthGeneration(self, n: int):
+        if (n < self.getCurrentGenerationCount()):
+            self.__resetToSeed()
+
+        self.__lSystem.createNthGeneration(n)
+        self.__lSystem.executeCurrentGeneration(self.__turtle, self.__forwardAlphabet)
+        self.__turtle.resetCanvas()
+
+    def resetGeneration(self):
+        self.generateNthGeneration(0)
 
     def getCurrentGeneration(self) -> str:
         return self.__lSystem.getCurrentGeneration()
@@ -71,13 +77,14 @@ class LSystemController:
     def drawLSystem(self):
         self.__turtle.draw()
 
+    ### ----- Alphabet Methods -----
     def getAlphabetOptions(self) -> dict:
         return self.__alphabetOptions
     
     def getAlphabet(self) -> dict:
         return self.__alphabet
     
-    def addToAlphabet(self, character : str, option : AlphabetOption, value : tuple[float, float] = None):
+    def addToAlphabet(self, character: str, option: AlphabetOption, value: tuple[float, float] = None):
         if (character.count() != 1):
             raise RuntimeError(character + " is not 1 character.")
         
@@ -86,15 +93,67 @@ class LSystemController:
         if (option.value == AlphabetOption.FORWARD):
             self.__forwardAlphabet.append(character)
 
-    def removeFromAlphabet(self, character : str):
+    def removeFromAlphabet(self, character: str):
         if (character in self.__alphabet):
             self.__alphabet.pop(character)
 
         if (character in self.__forwardAlphabet):
-            self.__forwardAlphabet.pop(character)
+            self.__forwardAlphabet.remove(character)
 
+    def isAlphabetCompatible(self) -> bool:
+        compatible = True
+        for character in self.__productionRules:
+            compatible = compatible and character in self.__alphabet
+            if (not compatible):
+                return compatible
+            
+        for character in self.__axiom:
+            compatible = compatible and character in self.__alphabet
+            if (not compatible):
+                return compatible
+            
+        return compatible
+
+    ### ----- Axiom Methods -----
     def getAxiom(self) -> str:
         return self.__axiom
     
     def setAxiom(self, axiom: str):
         self.__axiom = axiom
+
+    ### ----- Production Rules Methods -----
+    def getProductionRules(self) -> dict:
+        return self.__productionRules
+    
+    def addToProductionRules(self, character: str, rule: str):
+        if (character.count() != 1):
+            raise RuntimeError(character + " is not 1 character.")
+        if (rule == None):
+            raise RuntimeError("Production rule value cannot be None")
+        
+        if (character in self.__productionRules):
+            if (rule not in self.__productionRules[character]):
+                self.__productionRules[character].append(rule)
+        else:
+            self.__productionRules[character] = [rule]
+
+    def removeFromProductionRules(self, character: str, rule: str):
+        if (character in self.__productionRules and rule in self.__productionRules[character]):
+            if (len(self.__productionRules[character]) <= 1):
+                self.__productionRules.pop(character)
+            else:
+                self.__productionRules[character].remove(rule)
+
+    ### ----- Seed Methods -----
+    def getSeed(self) -> int:
+        return self.__seed
+    
+    def setSeed(self, newSeed: int):
+        self.__seed = newSeed
+        seed(self.__seed)
+
+    def randomiseSeed(self):
+        self.setSeed(randrange(maxsize))
+
+    def __resetToSeed(self):
+        seed(self.__seed)

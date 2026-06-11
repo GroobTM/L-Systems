@@ -1,3 +1,5 @@
+from random import choice
+
 from MyTurtle.MyTurtle import MyTurtle
 
 class LSystem:
@@ -13,7 +15,12 @@ class LSystem:
         nextGeneration = []
 
         for character in self.__currentGeneration:
-            nextGeneration.append(self.__productionRules.get(character, character))
+            rules = self.__productionRules.get(character, character)
+            noRules = len(rules)
+            if (rules == character or noRules == 0):
+                nextGeneration.append(rules[0])
+            else:
+                nextGeneration.append(choice(rules))
 
         self.__currentGeneration = "".join(nextGeneration)
         self.__generationCount += 1
