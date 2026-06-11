@@ -1,7 +1,7 @@
 from imgui_bundle import imgui
 from imgui_bundle.imgui import ImVec2
 
-from LSystemController import LSystemController
+from LSystem.LSystemController import LSystemController
 
 class GUI:
     def __init__(self, lSystemController: LSystemController):

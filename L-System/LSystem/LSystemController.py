@@ -1,9 +1,9 @@
 from random import seed
 
-from AlphabetFunction import AlphabetFunction
-from AlphabetOption import AlphabetOption
+from .AlphabetFunction import AlphabetFunction
+from .AlphabetOption import AlphabetOption
+from .LSystem import LSystem
 from MyTurtle.ImGuiTurtle import ImGuiTurtle
-from LSystem import LSystem
 
 # TODO Add seed set
 # TODO Add check for alphabet and axiom/rule compatibility

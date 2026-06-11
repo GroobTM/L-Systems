@@ -1,6 +1,6 @@
 from imgui_bundle import immapp
 
-from LSystemController import LSystemController
+from LSystem.LSystemController import LSystemController
 from GUI import GUI
 
 if __name__ == "__main__":
