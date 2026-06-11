@@ -3,13 +3,15 @@ from random import choice
 from MyTurtle.MyTurtle import MyTurtle
 
 class LSystem:
-    def __init__(self, alphabet: dict, axiom: str, productionRules: dict):
+    def __init__(self, alphabet: dict, axiom: str, productionRules: dict, forwardAlphabet: list[str]):
         self.__alphabet = alphabet
         self.__axiom = axiom
         self.__productionRules = productionRules
+        self.__forwardAlphabet = forwardAlphabet
 
         self.__currentGeneration = axiom
         self.__generationCount = 0
+        self.__currentLineCount = 0
 
     def createNextGeneration(self):
         nextGeneration = []
@@ -25,6 +27,9 @@ class LSystem:
         self.__currentGeneration = "".join(nextGeneration)
         self.__generationCount += 1
 
+        self.__currentLineCount = 0
+        for character in self.__forwardAlphabet:
+            self.__currentLineCount += self.__currentGeneration.count(character)
 
     def createNthGeneration(self, n: int):
         if (n == self.__generationCount):
@@ -39,11 +44,8 @@ class LSystem:
             self.createNextGeneration()
 
 
-    def executeCurrentGeneration(self, turtle: MyTurtle, forwardCharacters: list[str]):
-        noLines = 0 
-        for character in forwardCharacters:
-            noLines += self.__currentGeneration.count(character)
-        turtle.initLineArray(noLines)
+    def executeCurrentGeneration(self, turtle: MyTurtle):
+        turtle.initLineArray(self.__currentLineCount)
 
         for character in self.__currentGeneration:
             func = self.__alphabet[character]
@@ -56,3 +58,6 @@ class LSystem:
     
     def getCurrentGenerationCount(self) -> int:
         return self.__generationCount
+    
+    def getCurrentGenerationLineCount(self) -> int:
+        return self.__currentLineCount

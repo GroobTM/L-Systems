@@ -32,7 +32,7 @@ class LSystemController:
         self.__defaultForwardAlphabet = ["F"]
 
         self.__defaultProductionRules = {
-            "X": ["F[+X][-X]FX", "X"],
+            "X": ["F[+X][-X]FX"],
             "F": ["FF"]
         }
 
@@ -49,24 +49,24 @@ class LSystemController:
         self.__axiom = self.__defaultAxiom
 
     def resetLSystem(self):
-        self.__lSystem = LSystem(self.__alphabet.copy(), self.__axiom, self.__productionRules.copy())
+        self.__lSystem = LSystem(self.__alphabet.copy(), self.__axiom, self.__productionRules.copy(), self.__forwardAlphabet.copy())
         self.__resetToSeed()
 
-    def generateNextGeneration(self):
+    def createNextGeneration(self):
         self.__lSystem.createNextGeneration()
-        self.__lSystem.executeCurrentGeneration(self.__turtle, self.__forwardAlphabet)
-        self.__turtle.resetCanvas()
 
-    def generateNthGeneration(self, n: int):
+    def createNthGeneration(self, n: int):
         if (n < self.getCurrentGenerationCount()):
             self.__resetToSeed()
-
         self.__lSystem.createNthGeneration(n)
-        self.__lSystem.executeCurrentGeneration(self.__turtle, self.__forwardAlphabet)
-        self.__turtle.resetCanvas()
 
     def resetGeneration(self):
-        self.generateNthGeneration(0)
+        self.createNthGeneration(0)
+        self.executeCurrentGeneration()
+
+    def executeCurrentGeneration(self):
+        self.__lSystem.executeCurrentGeneration(self.__turtle)
+        self.__turtle.resetCanvas()
 
     def getCurrentGeneration(self) -> str:
         return self.__lSystem.getCurrentGeneration()
@@ -74,6 +74,9 @@ class LSystemController:
     def getCurrentGenerationCount(self) -> int:
         return self.__lSystem.getCurrentGenerationCount()
     
+    def lineCountGTEThreshold(self, threshold: int) -> bool:
+        return self.__lSystem.getCurrentGenerationLineCount() >= threshold
+
     def drawLSystem(self):
         self.__turtle.draw()
 
