@@ -12,12 +12,14 @@ class GUI:
         self.__showAlphabetWarning = False
         self.__showGenerationLengthWarning = False
         self.__showHighNWarning = False
+        self.__showRemoveLetterWarning = False
 
         self.__updateAxiom()
 
         self.__addAlphabetSelectedOptionIndex = 0
         self.__addAlphabetMinOptionValue = 0
         self.__addAlphabetMaxOptionValue = 0
+        self.__letterToRemove = ""
 
     def draw(self):
         windowWidth, windowHeight = imgui.get_content_region_avail()
@@ -179,7 +181,9 @@ class GUI:
                 
                 imgui.table_set_column_index(2)
                 if (imgui.button("X##" + alphabetKeys[row], ImVec2(30, 0))):
-                    self.__lSystemController.removeFromAlphabet(alphabetKeys[row])
+                    self.__showRemoveLetterWarning = True
+                    self.__letterToRemove = alphabetKeys[row]
+
             imgui.end_table()
             imgui.separator()
 
@@ -192,6 +196,22 @@ class GUI:
             if (imgui.button("Add Letter", ImVec2(-1, 0))):
                 pass
 
+        if (self.__showRemoveLetterWarning):
+            def onYes():
+                self.__lSystemController.removeFromAlphabet(self.__letterToRemove)
+                self.__showRemoveLetterWarning = False
+                self.__letterToRemove = ""
+            def onNo():
+                self.__showRemoveLetterWarning = False
+                self.__letterToRemove = ""
+
+            self.__createAreYouSureModal(
+                "Are you sure?",
+                "Are you sure you want to remove this letter?",
+                centre,
+                yesFunction=onYes,
+                noFunction=onNo
+                )
 
 
 
