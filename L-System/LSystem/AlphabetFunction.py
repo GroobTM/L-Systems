@@ -28,3 +28,6 @@ class AlphabetFunction:
         
     def getAlphabetOption(self) -> AlphabetOption:
         return self.__alphabetOption
+    
+    def getValue(self) -> tuple[float, float]:
+        return self.__valueBounds

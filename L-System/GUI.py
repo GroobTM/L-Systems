@@ -2,6 +2,7 @@ from imgui_bundle import imgui
 from imgui_bundle.imgui import ImVec2
 
 from LSystem.LSystemController import LSystemController
+from LSystem.AlphabetOption import AlphabetOption
 
 class GUI:
     def __init__(self, lSystemController: LSystemController):
@@ -13,6 +14,10 @@ class GUI:
         self.__showHighNWarning = False
 
         self.__updateAxiom()
+
+        self.__addAlphabetSelectedOptionIndex = 0
+        self.__addAlphabetMinOptionValue = 0
+        self.__addAlphabetMaxOptionValue = 0
 
     def draw(self):
         windowWidth, windowHeight = imgui.get_content_region_avail()
@@ -145,16 +150,50 @@ class GUI:
     def __createAlphabetControls(self, centre: ImVec2):
         alphabet = self.__lSystemController.getAlphabet()
         alphabetOptions = self.__lSystemController.getAlphabetOptions()
+        alphabetOptionsKeys = list(alphabetOptions.keys())
+        alphabetOptionsNames = [key.value for key in alphabetOptionsKeys]
         alphabetKeys = list(alphabet.keys())
 
-        if (imgui.begin_table("Alphabet", 2)):
+        if (imgui.begin_table("Alphabet", 3)):
+            imgui.table_setup_column("##letter", imgui.TableColumnFlags_.width_fixed)
+            imgui.table_setup_column("##function", imgui.TableColumnFlags_.width_stretch)
+            imgui.table_setup_column("##close", imgui.TableColumnFlags_.width_fixed)
             for row in range(len(alphabet)):
                 imgui.table_next_row()
                 imgui.table_set_column_index(0)
+                imgui.set_next_item_width(-1.0)
                 imgui.text(alphabetKeys[row])
+
                 imgui.table_set_column_index(1)
-                imgui.text(alphabet[alphabetKeys[row]].getAlphabetOption().value)
+                alphabetFunc = alphabet[alphabetKeys[row]]
+                alphabetFuncValue = alphabetFunc.getValue()
+
+                imgui.set_next_item_width(-1.0)
+                if (alphabetFuncValue == None):
+                    imgui.text_wrapped(alphabet[alphabetKeys[row]].getAlphabetOption().value)
+                else:
+                    if (alphabetFuncValue[0] == alphabetFuncValue[1]):
+                        imgui.text_wrapped(f"{alphabet[alphabetKeys[row]].getAlphabetOption().value} ({alphabetFuncValue[0]})")
+                    else:
+                        imgui.text_wrapped(f"{alphabet[alphabetKeys[row]].getAlphabetOption().value} ({alphabetFuncValue[0]} - {alphabetFuncValue[1]})")
+                
+                imgui.table_set_column_index(2)
+                if (imgui.button("X##" + alphabetKeys[row], ImVec2(30, 0))):
+                    self.__lSystemController.removeFromAlphabet(alphabetKeys[row])
             imgui.end_table()
+            imgui.separator()
+
+            imgui.set_next_item_width(-1.0)
+            changed, self.__addAlphabetSelectedOptionIndex = imgui.combo("##option", self.__addAlphabetSelectedOptionIndex, alphabetOptionsNames)
+            selectedOption = alphabetOptionsKeys[self.__addAlphabetSelectedOptionIndex]
+            if ((selectedOption != AlphabetOption.PUSH and selectedOption != AlphabetOption.POP and selectedOption != AlphabetOption.STOP)):
+                pass
+
+            if (imgui.button("Add Letter", ImVec2(-1, 0))):
+                pass
+
+
+
 
 
 
