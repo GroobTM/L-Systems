@@ -1,10 +1,13 @@
 from __future__ import annotations
 from random import uniform
 
+from .AlphabetOption import AlphabetOption
+
 class AlphabetFunction:
-    def __init__(self, function, valueBounds : tuple[float, float] = None):
+    def __init__(self, alphabetOption: AlphabetOption, function, valueBounds : tuple[float, float] = None):
         self.__function = function
         self.__valueBounds = valueBounds
+        self.__alphabetOption = alphabetOption
     
     def execute(self):
         if (self.__function != None):
@@ -19,6 +22,9 @@ class AlphabetFunction:
 
     def useFunction(self, valueBounds : tuple[float, float] = None) -> AlphabetFunction:
         if ((self.__valueBounds == None or (self.__valueBounds != None and valueBounds == None))):
-            return AlphabetFunction(self.__function, self.__valueBounds)
+            return AlphabetFunction(self.__alphabetOption, self.__function, self.__valueBounds)
         else:
-            return AlphabetFunction(self.__function, valueBounds)
+            return AlphabetFunction(self.__alphabetOption, self.__function, valueBounds)
+        
+    def getAlphabetOption(self) -> AlphabetOption:
+        return self.__alphabetOption

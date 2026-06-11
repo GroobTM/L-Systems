@@ -35,6 +35,9 @@ class GUI:
 
             if (imgui.collapsing_header("Alphabet")):
                 self.__createAlphabetControls(centre)
+
+            if (imgui.collapsing_header("Initial Axiom")):
+                imgui.text_wrapped(self.__lSystemController.getAxiom())
         imgui.end_child()
 
     def __updateAxiom(self):
@@ -142,7 +145,16 @@ class GUI:
     def __createAlphabetControls(self, centre: ImVec2):
         alphabet = self.__lSystemController.getAlphabet()
         alphabetOptions = self.__lSystemController.getAlphabetOptions()
+        alphabetKeys = list(alphabet.keys())
 
+        if (imgui.begin_table("Alphabet", 2)):
+            for row in range(len(alphabet)):
+                imgui.table_next_row()
+                imgui.table_set_column_index(0)
+                imgui.text(alphabetKeys[row])
+                imgui.table_set_column_index(1)
+                imgui.text(alphabet[alphabetKeys[row]].getAlphabetOption().value)
+            imgui.end_table()
 
 
 

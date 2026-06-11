@@ -12,12 +12,12 @@ class LSystemController:
         self.__turtle = ImGuiTurtle()
 
         self.__alphabetOptions = {
-            AlphabetOption.FORWARD : AlphabetFunction(self.__turtle.moveForward, (10, 10)),
-            AlphabetOption.LEFT    : AlphabetFunction(self.__turtle.turnLeft, (30, 30)),
-            AlphabetOption.RIGHT   : AlphabetFunction(self.__turtle.turnRight, (30, 30)),
-            AlphabetOption.PUSH    : AlphabetFunction(self.__turtle.pushState),
-            AlphabetOption.POP     : AlphabetFunction(self.__turtle.popState),
-            AlphabetOption.STOP    : AlphabetFunction(None)
+            AlphabetOption.FORWARD : AlphabetFunction(AlphabetOption.FORWARD, self.__turtle.moveForward, (10, 10)),
+            AlphabetOption.LEFT    : AlphabetFunction(AlphabetOption.LEFT, self.__turtle.turnLeft, (30, 30)),
+            AlphabetOption.RIGHT   : AlphabetFunction(AlphabetOption.RIGHT, self.__turtle.turnRight, (30, 30)),
+            AlphabetOption.PUSH    : AlphabetFunction(AlphabetOption.PUSH, self.__turtle.pushState),
+            AlphabetOption.POP     : AlphabetFunction(AlphabetOption.POP, self.__turtle.popState),
+            AlphabetOption.STOP    : AlphabetFunction(AlphabetOption.STOP, None)
         }
 
         self.__defaultAlphabet = {
