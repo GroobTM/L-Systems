@@ -7,6 +7,9 @@ from imgui_bundle.portable_file_dialogs import open_file, save_file
 from LSystem.LSystemController import LSystemController
 from LSystem.AlphabetOption import AlphabetOption
 
+# TODO Colour selector
+# TODO More Alphabet Options
+
 class GUI:
     def __init__(self, lSystemController: LSystemController):
         self.__lSystemController = lSystemController
@@ -34,6 +37,7 @@ class GUI:
 
         self.__addRuleKey = ""
         self.__addRuleRule = ""
+        self.__addRuleProbability = 1.0
         self.__ruleToRemove = ("", "")
 
         self.__axiom = self.__lSystemController.getAxiom()
@@ -339,9 +343,10 @@ class GUI:
         productionRules = self.__lSystemController.getProductionRules()
         productionRulesKeys = list(productionRules.keys())
 
-        if (imgui.begin_table("Production Rules", 3)):
+        if (imgui.begin_table("Production Rules", 4)):
             imgui.table_setup_column("##key", imgui.TableColumnFlags_.width_fixed)
             imgui.table_setup_column("##rule", imgui.TableColumnFlags_.width_stretch)
+            imgui.table_setup_column("##probability", imgui.TableColumnFlags_.width_fixed)
             imgui.table_setup_column("##removeRule", imgui.TableColumnFlags_.width_fixed)
             for row in range(len(productionRules)):
                 rules = productionRules[productionRulesKeys[row]]
@@ -352,13 +357,16 @@ class GUI:
                     imgui.text(productionRulesKeys[row])
 
                     imgui.table_set_column_index(1)
-                    imgui.text_wrapped(rules[subRow])
+                    imgui.text_wrapped(rules[subRow].getRule())
 
                     imgui.table_set_column_index(2)
+                    imgui.text(f"({rules[subRow].getProbability():.2f})")
+
+                    imgui.table_set_column_index(3)
                     imgui.begin_disabled(not self.__enableControls)
-                    if (imgui.button("X##" + productionRulesKeys[row] + rules[subRow], ImVec2(30, 0))):
+                    if (imgui.button("X##" + productionRulesKeys[row] + rules[subRow].getRule(), ImVec2(30, 0))):
                         self.__showRuleLetterWarning = True
-                        self.__ruleToRemove = (productionRulesKeys[row], rules[subRow])
+                        self.__ruleToRemove = (productionRulesKeys[row], rules[subRow].getRule())
                     imgui.end_disabled()
             imgui.end_table()
 
@@ -377,17 +385,25 @@ class GUI:
         if (changed):
             self.__addRuleRule = self.__addRuleRule.replace("\n", "").replace("\r", "")
 
-        allowAdd = len(self.__addRuleKey) == 1 and len(self.__addRuleRule) >= 1 \
-            and self.__addRuleRule not in productionRules.get(self.__addRuleKey, ())
+        imgui.text("Probability")
+        imgui.set_next_item_width(-1.0)
+        changed, self.__addRuleProbability = imgui.slider_float("##probability", self.__addRuleProbability, 0, 1, format="%.2f")
+        if (changed):
+            self.__addRuleProbability = round(self.__addRuleProbability, 2)
 
+        allowAdd = len(self.__addRuleKey) == 1 and len(self.__addRuleRule) >= 1 \
+            and self.__addRuleRule not in [existingRule.getRule() for existingRule in productionRules.get(self.__addRuleKey, [])] \
+            and self.__addRuleProbability > 0
         imgui.begin_disabled(not allowAdd)
         if (imgui.button("Add Letter", ImVec2(-1, 0))):
             self.__lSystemController.addToProductionRules(
                 self.__addRuleKey,
-                self.__addRuleRule
+                self.__addRuleRule,
+                self.__addRuleProbability
             )
             self.__addRuleKey = ""
             self.__addRuleRule = ""
+            self.__addRuleProbability = 1
             self.__settingsChanged = True
         imgui.end_disabled()
         imgui.end_disabled()

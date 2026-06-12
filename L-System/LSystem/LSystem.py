@@ -1,4 +1,4 @@
-from random import choice
+from random import choices
 
 from MyTurtle.MyTurtle import MyTurtle
 
@@ -24,10 +24,13 @@ class LSystem:
         for character in self.__currentGeneration:
             rules = self.__productionRules.get(character, character)
             noRules = len(rules)
-            if (rules == character or noRules == 0):
-                nextGeneration.append(rules[0])
+            if (rules == character):
+                nextGeneration.append(rules)
+            elif (noRules == 1):
+                nextGeneration.append(rules[0].getRule())
             else:
-                nextGeneration.append(choice(rules))
+                probabilities = [rule.getProbability() for rule in rules]
+                nextGeneration.append(choices(rules, weights=probabilities)[0].getRule())
 
         self.__currentGeneration = "".join(nextGeneration)
         self.__generationCount += 1

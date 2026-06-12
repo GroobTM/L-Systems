@@ -6,6 +6,7 @@ from copy import deepcopy
 from .AlphabetFunction import AlphabetFunction
 from .AlphabetOption import AlphabetOption
 from .LSystem import LSystem
+from .ProductionRule import ProductionRule
 from MyTurtle.ImGuiTurtle import ImGuiTurtle
 
 class LSystemController:
@@ -33,8 +34,8 @@ class LSystemController:
         self.__defaultForwardAlphabet = ["F"]
 
         self.__defaultProductionRules = {
-            "X": ["F[+X][-X]FX"],
-            "F": ["FF"]
+            "X": [ProductionRule("F[+X][-X]FX")],
+            "F": [ProductionRule("FF")]
         }
 
         self.__defaultAxiom = "X"
@@ -128,24 +129,30 @@ class LSystemController:
     def getProductionRules(self) -> dict:
         return self.__productionRules
     
-    def addToProductionRules(self, character: str, rule: str):
+    def addToProductionRules(self, character: str, rule: str, probability: float = 1):
         if (len(character) != 1):
             raise RuntimeError(character + " is not 1 character.")
         if (rule == None):
             raise RuntimeError("Production rule value cannot be None")
         
         if (character in self.__productionRules):
-            if (rule not in self.__productionRules[character]):
-                self.__productionRules[character].append(rule)
+            if (rule not in [existingRule.getRule() for existingRule in self.__productionRules[character]]):
+                self.__productionRules[character].append(ProductionRule(rule, probability))
         else:
-            self.__productionRules[character] = [rule]
+            self.__productionRules[character] = [ProductionRule(rule, probability)]
 
     def removeFromProductionRules(self, character: str, rule: str):
-        if (character in self.__productionRules and rule in self.__productionRules[character]):
-            if (len(self.__productionRules[character]) <= 1):
-                self.__productionRules.pop(character)
-            else:
-                self.__productionRules[character].remove(rule)
+        if (character in self.__productionRules):
+            existingRule = next(
+                (r for r in self.__productionRules[character] if r.getRule() == rule),
+                None
+            )
+
+            if (existingRule != None):
+                if (len(self.__productionRules[character]) <= 1):
+                    self.__productionRules.pop(character)
+                else:
+                    self.__productionRules[character].remove(existingRule)
 
     ### ----- Seed Methods -----
     def getSeed(self) -> int:
@@ -164,9 +171,13 @@ class LSystemController:
     ### ----- Save and Load Methods -----
     def save(self, path: str):
         convertedAlphabet = {char: func.convertToDict() for char, func in self.__alphabet.items()}
+        convertedProductionRules = {
+            key: [rule.convertToDict() for rule in ruleList]
+            for key, ruleList in self.__productionRules.items()
+        }
         data = {
             "alphabet" : convertedAlphabet,
-            "productionRules" : self.__productionRules,
+            "productionRules" : convertedProductionRules,
             "axiom" : self.__axiom,
             "seed" : self.__seed
         }      
@@ -191,4 +202,4 @@ class LSystemController:
         self.__productionRules = {}
         for key, rules in data["productionRules"].items():
             for rule in rules:
-                self.addToProductionRules(key, rule)
+                self.addToProductionRules(key, rule["rule"], rule["probability"])
