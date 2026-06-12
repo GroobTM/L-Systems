@@ -9,6 +9,8 @@ class GUI:
         self.__lSystemController = lSystemController
         self.__lSystemController.resetGeneration()
 
+        self.__enableControls = True
+
         self.__showAlphabetWarning = False
         self.__showGenerationLengthWarning = False
         self.__showHighNWarning = False
@@ -70,6 +72,7 @@ class GUI:
         if (imgui.button("Reset", ImVec2(-1, 0))):
             self.__lSystemController.resetGeneration()
             self.__updateAxiom()
+            self.__enableControls = True
         
         # ----- Incompatible Alphabet Modal -----
         if (self.__showAlphabetWarning):
@@ -137,6 +140,7 @@ class GUI:
             else:
                 self.__lSystemController.executeCurrentGeneration()
                 self.__updateAxiom()
+                self.__enableControls = False
         else:
             self.__showAlphabetWarning = True
 
@@ -181,11 +185,14 @@ class GUI:
                         imgui.text_wrapped(f"{alphabet[alphabetKeys[row]].getAlphabetOption().value} ({alphabetFuncValue[0]} - {alphabetFuncValue[1]})")
                 
                 imgui.table_set_column_index(2)
+                imgui.begin_disabled(not self.__enableControls)
                 if (imgui.button("X##" + alphabetKeys[row], ImVec2(30, 0))):
                     self.__showRemoveLetterWarning = True
                     self.__letterToRemove = alphabetKeys[row]
-
+                imgui.end_disabled()
             imgui.end_table()
+
+            imgui.begin_disabled(not self.__enableControls)
             imgui.separator()
 
             imgui.set_next_item_width(-1.0)
@@ -236,6 +243,7 @@ class GUI:
                     (self.__addAlphabetMinOptionValue, self.__addAlphabetMaxOptionValue) if hasValues else None
                 )
                 self.__addAlphabetLetter = ""
+            imgui.end_disabled()
             imgui.end_disabled()
 
         if (self.__showRemoveLetterWarning):
