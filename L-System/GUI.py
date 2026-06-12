@@ -7,8 +7,6 @@ from imgui_bundle.portable_file_dialogs import open_file, save_file
 from LSystem.LSystemController import LSystemController
 from LSystem.AlphabetOption import AlphabetOption
 
-# TODO More Alphabet Options
-
 class GUI:
     def __init__(self, lSystemController: LSystemController):
         self.__lSystemController = lSystemController
