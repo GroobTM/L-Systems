@@ -11,7 +11,12 @@ class LSystem:
 
         self.__currentGeneration = axiom
         self.__generationCount = 0
+        self.__countLines()
+
+    def __countLines(self):
         self.__currentLineCount = 0
+        for character in self.__forwardAlphabet:
+            self.__currentLineCount += self.__currentGeneration.count(character)
 
     def createNextGeneration(self):
         nextGeneration = []
@@ -27,9 +32,7 @@ class LSystem:
         self.__currentGeneration = "".join(nextGeneration)
         self.__generationCount += 1
 
-        self.__currentLineCount = 0
-        for character in self.__forwardAlphabet:
-            self.__currentLineCount += self.__currentGeneration.count(character)
+        self.__countLines()
 
     def createNthGeneration(self, n: int):
         if (n == self.__generationCount):

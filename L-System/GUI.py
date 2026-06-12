@@ -4,14 +4,14 @@ from imgui_bundle.imgui import ImVec2
 from LSystem.LSystemController import LSystemController
 from LSystem.AlphabetOption import AlphabetOption
 
-# TODO Reset Lsystem when axiom, production rules, or alphabet change.
-
 class GUI:
     def __init__(self, lSystemController: LSystemController):
         self.__lSystemController = lSystemController
         self.__lSystemController.resetGeneration()
+        self.__lSystemController.executeCurrentGeneration()
 
         self.__enableControls = True
+        self.__settingsChanged = False
 
         self.__showAlphabetWarning = False
         self.__showGenerationLengthWarning = False
@@ -62,6 +62,7 @@ class GUI:
                     if (changed):
                         self.__axiom = self.__axiom.replace("\n", "").replace("\r", "")
                         self.__lSystemController.setAxiom(self.__axiom)
+                        self.__settingsChanged = True
                 else:
                     imgui.text_wrapped(self.__axiom)
 
@@ -75,23 +76,26 @@ class GUI:
 
     def __createGenerationControls(self, centre: ImVec2):
         imgui.text("Axiom: " + str(self.__currentAxiom))
-        if (imgui.button("Next Axiom", ImVec2(-1, 0))):
-            self.__processNextAxiomGeneration()
-        if (imgui.button("Nth Axiom", ImVec2(-1, 0))):
-            imgui.open_popup("Select Axiom")
+        if (not self.__settingsChanged):
+            if (imgui.button("Next Axiom", ImVec2(-1, 0))):
+                self.__processNextAxiomGeneration()
+            if (imgui.button("Nth Axiom", ImVec2(-1, 0))):
+                imgui.open_popup("Select Axiom")
 
-        imgui.set_next_window_pos(centre, imgui.Cond_.appearing, ImVec2(0.5, 0.5))
-        if (imgui.begin_popup_modal("Select Axiom", flags=imgui.WindowFlags_.always_auto_resize)[0]):
-            changed, self.__selectedNthAxiom = imgui.slider_int("Select Nth Axiom", self.__selectedNthAxiom, v_min=0, v_max=20)
-            if (imgui.button("Okay", ImVec2(-1, 0))):
-                imgui.close_current_popup()
-                self.__processNthAxiomGeneration()
-            imgui.end_popup()
+            imgui.set_next_window_pos(centre, imgui.Cond_.appearing, ImVec2(0.5, 0.5))
+            if (imgui.begin_popup_modal("Select Axiom", flags=imgui.WindowFlags_.always_auto_resize)[0]):
+                changed, self.__selectedNthAxiom = imgui.slider_int("Select Nth Axiom", self.__selectedNthAxiom, v_min=0, v_max=20)
+                if (imgui.button("Okay", ImVec2(-1, 0))):
+                    imgui.close_current_popup()
+                    self.__processNthAxiomGeneration()
+                imgui.end_popup()
 
-        if (imgui.button("Reset", ImVec2(-1, 0))):
-            self.__lSystemController.resetGeneration()
-            self.__updateAxiomCounter()
-            self.__enableControls = True
+        if (imgui.button("Initialise" if self.__settingsChanged else "Reset", ImVec2(-1, 0))):
+            self.__processReset()
+        
+        if (imgui.button("Reset to Default", ImVec2(-1, 0))):
+            self.__lSystemController.setToDefaults()
+            self.__processReset()
         
         # ----- Incompatible Alphabet Modal -----
         if (self.__showAlphabetWarning):
@@ -150,6 +154,21 @@ class GUI:
                 self.__lSystemController.createNthGeneration(self.__currentAxiom)
                 self.__showGenerationLengthWarning = False
             imgui.end_popup()
+
+    def __processReset(self):
+        if (self.__lSystemController.isAlphabetCompatible()):
+            self.__lSystemController.resetLSystem()
+            self.__lSystemController.resetGeneration()
+            if (self.__lSystemController.lineCountGTEThreshold(100000)):
+                self.__showGenerationLengthWarning = True
+            else:
+                self.__lSystemController.executeCurrentGeneration()
+                self.__updateAxiomCounter()
+                self.__enableControls = True
+                self.__settingsChanged = False
+                self.__axiom = self.__lSystemController.getAxiom()
+        else:
+            self.__showAlphabetWarning = True
 
     def __processAxiomGeneration(self, createGenerationFunction):
         if (self.__lSystemController.isAlphabetCompatible()):
@@ -264,6 +283,7 @@ class GUI:
                 (self.__addAlphabetMinOptionValue, self.__addAlphabetMaxOptionValue) if hasValues else None
             )
             self.__addAlphabetLetter = ""
+            self.__settingsChanged = True
         imgui.end_disabled()
         imgui.end_disabled()
 
@@ -272,6 +292,7 @@ class GUI:
                 self.__lSystemController.removeFromAlphabet(self.__letterToRemove)
                 self.__showRemoveLetterWarning = False
                 self.__letterToRemove = ""
+                self.__settingsChanged = True
             def onNo():
                 self.__showRemoveLetterWarning = False
                 self.__letterToRemove = ""
@@ -337,6 +358,7 @@ class GUI:
             )
             self.__addRuleKey = ""
             self.__addRuleRule = ""
+            self.__settingsChanged = True
         imgui.end_disabled()
         imgui.end_disabled()
 
@@ -345,6 +367,7 @@ class GUI:
                 self.__lSystemController.removeFromProductionRules(self.__ruleToRemove[0], self.__ruleToRemove[1])
                 self.__showRuleLetterWarning = False
                 self.__ruleToRemove = ("", "")
+                self.__settingsChanged = True
             def onNo():
                 self.__showRuleLetterWarning = False
                 self.__ruleToRemove = ("", "")

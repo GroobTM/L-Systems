@@ -56,13 +56,12 @@ class LSystemController:
         self.__lSystem.createNextGeneration()
 
     def createNthGeneration(self, n: int):
-        if (n < self.getCurrentGenerationCount()):
+        if (n < self.getCurrentGenerationCount() or n == 0):
             self.__resetToSeed()
         self.__lSystem.createNthGeneration(n)
 
     def resetGeneration(self):
         self.createNthGeneration(0)
-        self.executeCurrentGeneration()
 
     def executeCurrentGeneration(self):
         self.__lSystem.executeCurrentGeneration(self.__turtle)
