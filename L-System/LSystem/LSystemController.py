@@ -93,7 +93,7 @@ class LSystemController:
         
         self.__alphabet[character] = self.__alphabetOptions[option].useFunction(value)
 
-        if (option.value == AlphabetOption.FORWARD):
+        if (option.value == AlphabetOption.FORWARD and character not in self.__forwardAlphabet):
             self.__forwardAlphabet.append(character)
 
     def removeFromAlphabet(self, character: str):

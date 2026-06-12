@@ -7,9 +7,6 @@ from imgui_bundle.portable_file_dialogs import open_file, save_file
 from LSystem.LSystemController import LSystemController
 from LSystem.AlphabetOption import AlphabetOption
 
-# TODO Load are you sure modal
-# TODO Save/Load error handle
-
 class GUI:
     def __init__(self, lSystemController: LSystemController):
         self.__lSystemController = lSystemController
@@ -25,6 +22,7 @@ class GUI:
         self.__showRemoveLetterWarning = False
         self.__showRuleLetterWarning = False
         self.__showLoadWarning = False
+        self.__showSaveLoadError = False
 
         self.__updateAxiomCounter()
 
@@ -43,6 +41,7 @@ class GUI:
         self.__seed = self.__lSystemController.getSeed()
 
         self.__loadFilePath = None
+        self.__saveLoadErrorReason = ""
 
     def draw(self):
         windowWidth, windowHeight = imgui.get_content_region_avail()
@@ -421,7 +420,11 @@ class GUI:
 
             path = window.result()
             if (path):
-                self.__lSystemController.save(path)
+                try:
+                    self.__lSystemController.save(path)
+                except (PermissionError):
+                    self.__showSaveLoadError = True
+                    self.__saveLoadErrorReason = "Permission denied while trying to write file: " + path
 
         imgui.begin_disabled(not self.__enableControls)
         if (imgui.button("Load Settings", ImVec2(-1, 0))):
@@ -439,8 +442,19 @@ class GUI:
 
         if (self.__showLoadWarning):
             def onYes():
-                self.__lSystemController.load(self.__loadFilePath[0])
-                self.__axiom = self.__lSystemController.getAxiom()
+                try:
+                    self.__lSystemController.load(self.__loadFilePath[0])
+                    self.__axiom = self.__lSystemController.getAxiom()
+                except (FileNotFoundError):
+                    self.__showSaveLoadError = True
+                    self.__saveLoadErrorReason = "File not found: " + self.__loadFilePath[0]
+                except (PermissionError):
+                    self.__showSaveLoadError = True
+                    self.__saveLoadErrorReason = "Permission denied while trying to read file: " + self.__loadFilePath[0]
+                except (json.JSONDecodeError, KeyError, ValueError, TypeError):
+                    self.__showSaveLoadError = True
+                    self.__saveLoadErrorReason = "The file is corrupted: " + self.__loadFilePath[0]
+
                 self.__settingsChanged = True
                 self.__showLoadWarning = False
                 self.__loadFilePath = None
@@ -456,6 +470,24 @@ class GUI:
                 yesFunction=onYes,
                 noFunction=onNo
                 )
+            
+        if (self.__showSaveLoadError):
+            self.__createSaveLoadErrorModal(centre)
+            
+    def __createSaveLoadErrorModal(self, centre: ImVec2):
+        load = self.__loadFilePath != None
+        title = "Load Error" if load else "Save Error"
+        imgui.open_popup(title)
+        imgui.set_next_window_pos(centre, imgui.Cond_.appearing, ImVec2(0.5, 0.5))
+        if (imgui.begin_popup_modal(title, flags=imgui.WindowFlags_.always_auto_resize)[0]):
+            imgui.push_text_wrap_pos(400)
+            imgui.text(self.__saveLoadErrorReason)
+            imgui.pop_text_wrap_pos()
+
+            if (imgui.button("Okay", ImVec2(-1, 0))):
+                imgui.close_current_popup()
+                self.__showSaveLoadError = False
+            imgui.end_popup()
 
     def __createAreYouSureModal(self, title:str, text: str, centre: ImVec2, yesFunction = None, noFunction = None):
         imgui.open_popup(title)
