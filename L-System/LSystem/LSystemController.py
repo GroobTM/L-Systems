@@ -2,6 +2,7 @@ import json
 
 from random import seed, randrange
 from copy import deepcopy
+from imgui_bundle.imgui import ImVec4
 
 from .AlphabetFunction import AlphabetFunction
 from .AlphabetOption import AlphabetOption
@@ -40,6 +41,8 @@ class LSystemController:
 
         self.__defaultAxiom = "X"
 
+        self.__defaultColour = ImVec4(0, 1, 0, 1)
+
         self.randomiseSeed()
         self.setToDefaults()
         self.resetLSystem()
@@ -49,9 +52,11 @@ class LSystemController:
         self.__forwardAlphabet = self.__defaultForwardAlphabet.copy()
         self.__productionRules = deepcopy(self.__defaultProductionRules)
         self.__axiom = self.__defaultAxiom
+        self.__colour = self.__defaultColour
 
     def resetLSystem(self):
         self.__lSystem = LSystem(self.__alphabet.copy(), self.__axiom, deepcopy(self.__productionRules), self.__forwardAlphabet.copy())
+        self.__turtle.setColour(self.__colour)
         self.__resetToSeed()
 
     def createNextGeneration(self):
@@ -176,10 +181,11 @@ class LSystemController:
             for key, ruleList in self.__productionRules.items()
         }
         data = {
-            "alphabet" : convertedAlphabet,
-            "productionRules" : convertedProductionRules,
-            "axiom" : self.__axiom,
-            "seed" : self.__seed
+            "alphabet"          : convertedAlphabet,
+            "productionRules"   : convertedProductionRules,
+            "axiom"             : self.__axiom,
+            "seed"              : self.__seed,
+            "colour"            : tuple(self.__colour)
         }      
 
         with open(path, "w") as file:
@@ -191,6 +197,7 @@ class LSystemController:
 
         self.setAxiom(data["axiom"])
         self.setSeed(data["seed"])
+        self.setColour(ImVec4(data["colour"]))
 
         self.__alphabet = {}
         self.__forwardAlphabet = []
@@ -203,3 +210,11 @@ class LSystemController:
         for key, rules in data["productionRules"].items():
             for rule in rules:
                 self.addToProductionRules(key, rule["rule"], rule["probability"])
+
+    ### ----- Colour Methods -----
+    def setColour(self, colour: ImVec4):
+        self.__colour = colour
+        self.__turtle.setColour(colour)
+
+    def getColour(self) -> ImVec4:
+        return self.__colour

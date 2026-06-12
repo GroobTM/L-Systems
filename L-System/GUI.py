@@ -7,7 +7,6 @@ from imgui_bundle.portable_file_dialogs import open_file, save_file
 from LSystem.LSystemController import LSystemController
 from LSystem.AlphabetOption import AlphabetOption
 
-# TODO Colour selector
 # TODO More Alphabet Options
 
 class GUI:
@@ -43,6 +42,8 @@ class GUI:
         self.__axiom = self.__lSystemController.getAxiom()
 
         self.__seed = self.__lSystemController.getSeed()
+
+        self.__colour = self.__lSystemController.getColour()
 
         self.__loadFilePath = None
         self.__saveLoadErrorReason = ""
@@ -99,8 +100,14 @@ class GUI:
                 else:
                     imgui.text_wrapped(self.__seed)
 
+            if (imgui.collapsing_header("Colour")):
+                colourFlags = imgui.ColorEditFlags_.no_inputs
+                changed, self.__colour = imgui.color_edit4("Line Colour", self.__colour, flags=colourFlags)
+                if (changed):
+                    self.__lSystemController.setColour(self.__colour)
+
             if (imgui.collapsing_header("Save/Load")):
-                self.__createSaveLoadControls(centre)
+                self.__createSaveLoadControls(centre) 
 
         imgui.end_child()
 
@@ -461,6 +468,7 @@ class GUI:
                 try:
                     self.__lSystemController.load(self.__loadFilePath[0])
                     self.__axiom = self.__lSystemController.getAxiom()
+                    self.__colour = self.__lSystemController.getColour()
                 except (FileNotFoundError):
                     self.__showSaveLoadError = True
                     self.__saveLoadErrorReason = "File not found: " + self.__loadFilePath[0]
@@ -504,7 +512,7 @@ class GUI:
                 imgui.close_current_popup()
                 self.__showSaveLoadError = False
             imgui.end_popup()
-
+        
     def __createAreYouSureModal(self, title:str, text: str, centre: ImVec2, yesFunction = None, noFunction = None):
         imgui.open_popup(title)
         imgui.set_next_window_pos(centre, imgui.Cond_.appearing, ImVec2(0.5, 0.5))
