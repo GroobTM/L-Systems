@@ -4,6 +4,8 @@ from imgui_bundle.imgui import ImVec2
 from LSystem.LSystemController import LSystemController
 from LSystem.AlphabetOption import AlphabetOption
 
+# TODO Save/Load
+
 class GUI:
     def __init__(self, lSystemController: LSystemController):
         self.__lSystemController = lSystemController
@@ -32,6 +34,8 @@ class GUI:
         self.__ruleToRemove = ("", "")
 
         self.__axiom = self.__lSystemController.getAxiom()
+
+        self.__seed = self.__lSystemController.getSeed()
 
     def draw(self):
         windowWidth, windowHeight = imgui.get_content_region_avail()
@@ -68,6 +72,22 @@ class GUI:
 
             if (imgui.collapsing_header("Production Rules")):
                 self.__createProductionRulesControls(centre)
+
+            if (imgui.collapsing_header("Seed")):
+                if (self.__enableControls):
+                    imgui.set_next_item_width(-1.0)
+                    changed, self.__seed = imgui.input_int("##seed", self.__seed, 0, 0)
+                    if (changed):
+                        self.__lSystemController.setSeed(self.__seed)
+                        self.__settingsChanged = True
+
+                    if (imgui.button("Randomise Seed", ImVec2(-1, 0))):
+                        self.__lSystemController.randomiseSeed()
+                        self.__seed = self.__lSystemController.getSeed()
+                        self.__settingsChanged = True
+                        
+                else:
+                    imgui.text_wrapped(self.__seed)
         imgui.end_child()
 
     def __updateAxiomCounter(self):

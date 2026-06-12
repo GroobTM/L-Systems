@@ -155,7 +155,7 @@ class LSystemController:
         seed(self.__seed)
 
     def randomiseSeed(self):
-        self.setSeed(randrange(maxsize))
+        self.setSeed(randrange(-2**31, 2**31))
 
     def __resetToSeed(self):
         seed(self.__seed)
