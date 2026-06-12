@@ -19,6 +19,7 @@ class GUI:
         self.__addAlphabetSelectedOptionIndex = 0
         self.__addAlphabetMinOptionValue = 0
         self.__addAlphabetMaxOptionValue = 0
+        self.__addAlphabetLetter = ""
         self.__letterToRemove = ""
 
     def draw(self):
@@ -151,10 +152,10 @@ class GUI:
 
     def __createAlphabetControls(self, centre: ImVec2):
         alphabet = self.__lSystemController.getAlphabet()
+        alphabetKeys = list(alphabet.keys())
         alphabetOptions = self.__lSystemController.getAlphabetOptions()
         alphabetOptionsKeys = list(alphabetOptions.keys())
         alphabetOptionsNames = [key.value for key in alphabetOptionsKeys]
-        alphabetKeys = list(alphabet.keys())
 
         if (imgui.begin_table("Alphabet", 3)):
             imgui.table_setup_column("##letter", imgui.TableColumnFlags_.width_fixed)
@@ -190,11 +191,52 @@ class GUI:
             imgui.set_next_item_width(-1.0)
             changed, self.__addAlphabetSelectedOptionIndex = imgui.combo("##option", self.__addAlphabetSelectedOptionIndex, alphabetOptionsNames)
             selectedOption = alphabetOptionsKeys[self.__addAlphabetSelectedOptionIndex]
-            if ((selectedOption != AlphabetOption.PUSH and selectedOption != AlphabetOption.POP and selectedOption != AlphabetOption.STOP)):
-                pass
+            hasValues = selectedOption != AlphabetOption.PUSH and selectedOption != AlphabetOption.POP and selectedOption != AlphabetOption.STOP
+            if (hasValues):
+                if (selectedOption == AlphabetOption.LEFT or selectedOption == AlphabetOption.RIGHT):
+                    self.__addAlphabetMaxOptionValue = max(0, min(180, self.__addAlphabetMaxOptionValue))
+                    self.__addAlphabetMinOptionValue = max(0, min(180, self.__addAlphabetMinOptionValue))
 
+                    imgui.text_wrapped("Max Angle")
+                    imgui.set_next_item_width(-1.0)
+                    changed, self.__addAlphabetMaxOptionValue = imgui.slider_int("##maxAngle", self.__addAlphabetMaxOptionValue, 0, 180)
+                    if (changed and self.__addAlphabetMaxOptionValue < self.__addAlphabetMinOptionValue):
+                        self.__addAlphabetMinOptionValue = self.__addAlphabetMaxOptionValue
+
+                    imgui.text_wrapped("Min Angle")
+                    imgui.set_next_item_width(-1.0)
+                    changed, self.__addAlphabetMinOptionValue = imgui.slider_int("##minAngle", self.__addAlphabetMinOptionValue, 0, 180)
+                    if (changed and self.__addAlphabetMaxOptionValue < self.__addAlphabetMinOptionValue):
+                        self.__addAlphabetMaxOptionValue = self.__addAlphabetMinOptionValue
+                else:
+                    imgui.text_wrapped("Max Value")
+                    imgui.set_next_item_width(-1.0)
+                    changed, self.__addAlphabetMaxOptionValue = imgui.input_int("##maxValue", self.__addAlphabetMaxOptionValue, 0, 180)
+                    if (changed and self.__addAlphabetMaxOptionValue < self.__addAlphabetMinOptionValue):
+                        self.__addAlphabetMinOptionValue = self.__addAlphabetMaxOptionValue
+
+                    imgui.text_wrapped("Min Value")
+                    imgui.set_next_item_width(-1.0)
+                    changed, self.__addAlphabetMinOptionValue = imgui.input_int("##minValue", self.__addAlphabetMinOptionValue, 0, 180)
+                    if (changed and self.__addAlphabetMaxOptionValue < self.__addAlphabetMinOptionValue):
+                        self.__addAlphabetMaxOptionValue = self.__addAlphabetMinOptionValue
+
+            imgui.text("Letter")
+            imgui.set_next_item_width(-1.0)
+            changed, self.__addAlphabetLetter = imgui.input_text("#letter", self.__addAlphabetLetter)
+            if (changed and len(self.__addAlphabetLetter) > 1):
+                self.__addAlphabetLetter = self.__addAlphabetLetter[0]
+
+            allowAdd = len(self.__addAlphabetLetter) == 1 and self.__addAlphabetLetter not in alphabetKeys
+            imgui.begin_disabled(not allowAdd)
             if (imgui.button("Add Letter", ImVec2(-1, 0))):
-                pass
+                self.__lSystemController.addToAlphabet(
+                    self.__addAlphabetLetter,
+                    selectedOption,
+                    (self.__addAlphabetMinOptionValue, self.__addAlphabetMaxOptionValue) if hasValues else None
+                )
+                self.__addAlphabetLetter = ""
+            imgui.end_disabled()
 
         if (self.__showRemoveLetterWarning):
             def onYes():

@@ -88,7 +88,7 @@ class LSystemController:
         return self.__alphabet
     
     def addToAlphabet(self, character: str, option: AlphabetOption, value: tuple[float, float] = None):
-        if (character.count() != 1):
+        if (len(character) != 1):
             raise RuntimeError(character + " is not 1 character.")
         
         self.__alphabet[character] = self.__alphabetOptions[option].useFunction(value)
