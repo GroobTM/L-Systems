@@ -49,7 +49,7 @@ class LSystemController:
         self.__axiom = self.__defaultAxiom
 
     def resetLSystem(self):
-        self.__lSystem = LSystem(self.__alphabet.copy(), self.__axiom, self.__productionRules.copy(), self.__forwardAlphabet.copy())
+        self.__lSystem = LSystem(self.__alphabet.copy(), self.__axiom, deepcopy(self.__productionRules), self.__forwardAlphabet.copy())
         self.__resetToSeed()
 
     def createNextGeneration(self):
@@ -129,7 +129,7 @@ class LSystemController:
         return self.__productionRules
     
     def addToProductionRules(self, character: str, rule: str):
-        if (character.count() != 1):
+        if (len(character) != 1):
             raise RuntimeError(character + " is not 1 character.")
         if (rule == None):
             raise RuntimeError("Production rule value cannot be None")

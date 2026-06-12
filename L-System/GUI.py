@@ -4,6 +4,8 @@ from imgui_bundle.imgui import ImVec2
 from LSystem.LSystemController import LSystemController
 from LSystem.AlphabetOption import AlphabetOption
 
+# TODO Reset Lsystem when axiom, production rules, or alphabet change.
+
 class GUI:
     def __init__(self, lSystemController: LSystemController):
         self.__lSystemController = lSystemController
@@ -15,14 +17,21 @@ class GUI:
         self.__showGenerationLengthWarning = False
         self.__showHighNWarning = False
         self.__showRemoveLetterWarning = False
+        self.__showRuleLetterWarning = False
 
-        self.__updateAxiom()
+        self.__updateAxiomCounter()
 
         self.__addAlphabetSelectedOptionIndex = 0
         self.__addAlphabetMinOptionValue = 0
         self.__addAlphabetMaxOptionValue = 0
         self.__addAlphabetLetter = ""
         self.__letterToRemove = ""
+
+        self.__addRuleKey = ""
+        self.__addRuleRule = ""
+        self.__ruleToRemove = ("", "")
+
+        self.__axiom = self.__lSystemController.getAxiom()
 
     def draw(self):
         windowWidth, windowHeight = imgui.get_content_region_avail()
@@ -47,10 +56,20 @@ class GUI:
                 self.__createAlphabetControls(centre)
 
             if (imgui.collapsing_header("Initial Axiom")):
-                imgui.text_wrapped(self.__lSystemController.getAxiom())
+                if (self.__enableControls):
+                    axiomFlags = imgui.InputTextFlags_.word_wrap
+                    changed, self.__axiom = imgui.input_text_multiline("##axiom", self.__axiom, ImVec2(-1, 0), flags=axiomFlags)
+                    if (changed):
+                        self.__axiom = self.__axiom.replace("\n", "").replace("\r", "")
+                        self.__lSystemController.setAxiom(self.__axiom)
+                else:
+                    imgui.text_wrapped(self.__axiom)
+
+            if (imgui.collapsing_header("Production Rules")):
+                self.__createProductionRulesControls(centre)
         imgui.end_child()
 
-    def __updateAxiom(self):
+    def __updateAxiomCounter(self):
         self.__currentAxiom = self.__lSystemController.getCurrentGenerationCount()
         self.__selectedNthAxiom = self.__currentAxiom
 
@@ -71,7 +90,7 @@ class GUI:
 
         if (imgui.button("Reset", ImVec2(-1, 0))):
             self.__lSystemController.resetGeneration()
-            self.__updateAxiom()
+            self.__updateAxiomCounter()
             self.__enableControls = True
         
         # ----- Incompatible Alphabet Modal -----
@@ -123,7 +142,7 @@ class GUI:
             if (imgui.button("Continue", ImVec2(-1, 0))):
                 imgui.close_current_popup()
                 self.__lSystemController.executeCurrentGeneration()
-                self.__updateAxiom()
+                self.__updateAxiomCounter()
                 self.__showGenerationLengthWarning = False
 
             if (imgui.button("Cancel", ImVec2(-1, 0))):
@@ -139,7 +158,7 @@ class GUI:
                 self.__showGenerationLengthWarning = True
             else:
                 self.__lSystemController.executeCurrentGeneration()
-                self.__updateAxiom()
+                self.__updateAxiomCounter()
                 self.__enableControls = False
         else:
             self.__showAlphabetWarning = True
@@ -164,7 +183,7 @@ class GUI:
         if (imgui.begin_table("Alphabet", 3)):
             imgui.table_setup_column("##letter", imgui.TableColumnFlags_.width_fixed)
             imgui.table_setup_column("##function", imgui.TableColumnFlags_.width_stretch)
-            imgui.table_setup_column("##close", imgui.TableColumnFlags_.width_fixed)
+            imgui.table_setup_column("##removeLetter", imgui.TableColumnFlags_.width_fixed)
             for row in range(len(alphabet)):
                 imgui.table_next_row()
                 imgui.table_set_column_index(0)
@@ -192,59 +211,61 @@ class GUI:
                 imgui.end_disabled()
             imgui.end_table()
 
-            imgui.begin_disabled(not self.__enableControls)
-            imgui.separator()
+        imgui.separator()
 
-            imgui.set_next_item_width(-1.0)
-            changed, self.__addAlphabetSelectedOptionIndex = imgui.combo("##option", self.__addAlphabetSelectedOptionIndex, alphabetOptionsNames)
-            selectedOption = alphabetOptionsKeys[self.__addAlphabetSelectedOptionIndex]
-            hasValues = selectedOption != AlphabetOption.PUSH and selectedOption != AlphabetOption.POP and selectedOption != AlphabetOption.STOP
-            if (hasValues):
-                if (selectedOption == AlphabetOption.LEFT or selectedOption == AlphabetOption.RIGHT):
-                    self.__addAlphabetMaxOptionValue = max(0, min(180, self.__addAlphabetMaxOptionValue))
-                    self.__addAlphabetMinOptionValue = max(0, min(180, self.__addAlphabetMinOptionValue))
+        imgui.begin_disabled(not self.__enableControls)
 
-                    imgui.text_wrapped("Max Angle")
-                    imgui.set_next_item_width(-1.0)
-                    changed, self.__addAlphabetMaxOptionValue = imgui.slider_int("##maxAngle", self.__addAlphabetMaxOptionValue, 0, 180)
-                    if (changed and self.__addAlphabetMaxOptionValue < self.__addAlphabetMinOptionValue):
-                        self.__addAlphabetMinOptionValue = self.__addAlphabetMaxOptionValue
+        imgui.text("Letter")
+        imgui.set_next_item_width(-1.0)
+        changed, self.__addAlphabetLetter = imgui.input_text("##letter", self.__addAlphabetLetter)
+        if (changed and len(self.__addAlphabetLetter) > 1):
+            self.__addAlphabetLetter = self.__addAlphabetLetter[0]
 
-                    imgui.text_wrapped("Min Angle")
-                    imgui.set_next_item_width(-1.0)
-                    changed, self.__addAlphabetMinOptionValue = imgui.slider_int("##minAngle", self.__addAlphabetMinOptionValue, 0, 180)
-                    if (changed and self.__addAlphabetMaxOptionValue < self.__addAlphabetMinOptionValue):
-                        self.__addAlphabetMaxOptionValue = self.__addAlphabetMinOptionValue
-                else:
-                    imgui.text_wrapped("Max Value")
-                    imgui.set_next_item_width(-1.0)
-                    changed, self.__addAlphabetMaxOptionValue = imgui.input_int("##maxValue", self.__addAlphabetMaxOptionValue, 0, 180)
-                    if (changed and self.__addAlphabetMaxOptionValue < self.__addAlphabetMinOptionValue):
-                        self.__addAlphabetMinOptionValue = self.__addAlphabetMaxOptionValue
+        imgui.text("Option")
+        imgui.set_next_item_width(-1.0)
+        changed, self.__addAlphabetSelectedOptionIndex = imgui.combo("##option", self.__addAlphabetSelectedOptionIndex, alphabetOptionsNames)
+        selectedOption = alphabetOptionsKeys[self.__addAlphabetSelectedOptionIndex]
+        hasValues = selectedOption != AlphabetOption.PUSH and selectedOption != AlphabetOption.POP and selectedOption != AlphabetOption.STOP
+        if (hasValues):
+            if (selectedOption == AlphabetOption.LEFT or selectedOption == AlphabetOption.RIGHT):
+                self.__addAlphabetMaxOptionValue = max(0, min(180, self.__addAlphabetMaxOptionValue))
+                self.__addAlphabetMinOptionValue = max(0, min(180, self.__addAlphabetMinOptionValue))
 
-                    imgui.text_wrapped("Min Value")
-                    imgui.set_next_item_width(-1.0)
-                    changed, self.__addAlphabetMinOptionValue = imgui.input_int("##minValue", self.__addAlphabetMinOptionValue, 0, 180)
-                    if (changed and self.__addAlphabetMaxOptionValue < self.__addAlphabetMinOptionValue):
-                        self.__addAlphabetMaxOptionValue = self.__addAlphabetMinOptionValue
+                imgui.text_wrapped("Max Angle")
+                imgui.set_next_item_width(-1.0)
+                changed, self.__addAlphabetMaxOptionValue = imgui.slider_int("##maxAngle", self.__addAlphabetMaxOptionValue, 0, 180)
+                if (changed and self.__addAlphabetMaxOptionValue < self.__addAlphabetMinOptionValue):
+                    self.__addAlphabetMinOptionValue = self.__addAlphabetMaxOptionValue
 
-            imgui.text("Letter")
-            imgui.set_next_item_width(-1.0)
-            changed, self.__addAlphabetLetter = imgui.input_text("#letter", self.__addAlphabetLetter)
-            if (changed and len(self.__addAlphabetLetter) > 1):
-                self.__addAlphabetLetter = self.__addAlphabetLetter[0]
+                imgui.text_wrapped("Min Angle")
+                imgui.set_next_item_width(-1.0)
+                changed, self.__addAlphabetMinOptionValue = imgui.slider_int("##minAngle", self.__addAlphabetMinOptionValue, 0, 180)
+                if (changed and self.__addAlphabetMaxOptionValue < self.__addAlphabetMinOptionValue):
+                    self.__addAlphabetMaxOptionValue = self.__addAlphabetMinOptionValue
+            else:
+                imgui.text_wrapped("Max Value")
+                imgui.set_next_item_width(-1.0)
+                changed, self.__addAlphabetMaxOptionValue = imgui.input_int("##maxValue", self.__addAlphabetMaxOptionValue, 0, 180)
+                if (changed and self.__addAlphabetMaxOptionValue < self.__addAlphabetMinOptionValue):
+                    self.__addAlphabetMinOptionValue = self.__addAlphabetMaxOptionValue
 
-            allowAdd = len(self.__addAlphabetLetter) == 1 and self.__addAlphabetLetter not in alphabetKeys
-            imgui.begin_disabled(not allowAdd)
-            if (imgui.button("Add Letter", ImVec2(-1, 0))):
-                self.__lSystemController.addToAlphabet(
-                    self.__addAlphabetLetter,
-                    selectedOption,
-                    (self.__addAlphabetMinOptionValue, self.__addAlphabetMaxOptionValue) if hasValues else None
-                )
-                self.__addAlphabetLetter = ""
-            imgui.end_disabled()
-            imgui.end_disabled()
+                imgui.text_wrapped("Min Value")
+                imgui.set_next_item_width(-1.0)
+                changed, self.__addAlphabetMinOptionValue = imgui.input_int("##minValue", self.__addAlphabetMinOptionValue, 0, 180)
+                if (changed and self.__addAlphabetMaxOptionValue < self.__addAlphabetMinOptionValue):
+                    self.__addAlphabetMaxOptionValue = self.__addAlphabetMinOptionValue
+
+        allowAdd = len(self.__addAlphabetLetter) == 1 and self.__addAlphabetLetter not in alphabetKeys
+        imgui.begin_disabled(not allowAdd)
+        if (imgui.button("Add Letter", ImVec2(-1, 0))):
+            self.__lSystemController.addToAlphabet(
+                self.__addAlphabetLetter,
+                selectedOption,
+                (self.__addAlphabetMinOptionValue, self.__addAlphabetMaxOptionValue) if hasValues else None
+            )
+            self.__addAlphabetLetter = ""
+        imgui.end_disabled()
+        imgui.end_disabled()
 
         if (self.__showRemoveLetterWarning):
             def onYes():
@@ -263,13 +284,78 @@ class GUI:
                 noFunction=onNo
                 )
 
+    def __createProductionRulesControls(self, centre: ImVec2):
+        productionRules = self.__lSystemController.getProductionRules()
+        productionRulesKeys = list(productionRules.keys())
 
+        if (imgui.begin_table("Production Rules", 3)):
+            imgui.table_setup_column("##key", imgui.TableColumnFlags_.width_fixed)
+            imgui.table_setup_column("##rule", imgui.TableColumnFlags_.width_stretch)
+            imgui.table_setup_column("##removeRule", imgui.TableColumnFlags_.width_fixed)
+            for row in range(len(productionRules)):
+                rules = productionRules[productionRulesKeys[row]]
+                for subRow in range(len(rules)):
+                    imgui.table_next_row()
+                    imgui.table_set_column_index(0)
+                    imgui.set_next_item_width(-1.0)
+                    imgui.text(productionRulesKeys[row])
 
+                    imgui.table_set_column_index(1)
+                    imgui.text_wrapped(rules[subRow])
 
+                    imgui.table_set_column_index(2)
+                    imgui.begin_disabled(not self.__enableControls)
+                    if (imgui.button("X##" + productionRulesKeys[row] + rules[subRow], ImVec2(30, 0))):
+                        self.__showRuleLetterWarning = True
+                        self.__ruleToRemove = (productionRulesKeys[row], rules[subRow])
+                    imgui.end_disabled()
+            imgui.end_table()
 
+        imgui.separator()
+        imgui.begin_disabled(not self.__enableControls)
 
+        imgui.text("Key")
+        imgui.set_next_item_width(-1.0)
+        changed, self.__addRuleKey = imgui.input_text("##key", self.__addRuleKey)
+        if (changed and len(self.__addRuleKey) > 1):
+            self.__addRuleKey = self.__addRuleKey[0]
 
+        imgui.text("Rule")
+        ruleFlags = imgui.InputTextFlags_.word_wrap
+        changed, self.__addRuleRule = imgui.input_text_multiline("##rule", self.__addRuleRule, ImVec2(-1, 0), flags=ruleFlags)
+        if (changed):
+            self.__addRuleRule = self.__addRuleRule.replace("\n", "").replace("\r", "")
 
+        allowAdd = len(self.__addRuleKey) == 1 and len(self.__addRuleRule) >= 1 \
+            and self.__addRuleRule not in productionRules.get(self.__addRuleKey, ())
+
+        imgui.begin_disabled(not allowAdd)
+        if (imgui.button("Add Letter", ImVec2(-1, 0))):
+            self.__lSystemController.addToProductionRules(
+                self.__addRuleKey,
+                self.__addRuleRule
+            )
+            self.__addRuleKey = ""
+            self.__addRuleRule = ""
+        imgui.end_disabled()
+        imgui.end_disabled()
+
+        if (self.__showRuleLetterWarning):
+            def onYes():
+                self.__lSystemController.removeFromProductionRules(self.__ruleToRemove[0], self.__ruleToRemove[1])
+                self.__showRuleLetterWarning = False
+                self.__ruleToRemove = ("", "")
+            def onNo():
+                self.__showRuleLetterWarning = False
+                self.__ruleToRemove = ("", "")
+
+            self.__createAreYouSureModal(
+                "Are you sure?",
+                "Are you sure you want to remove this rule?",
+                centre,
+                yesFunction=onYes,
+                noFunction=onNo
+                )
 
     def __createAreYouSureModal(self, title:str, text: str, centre: ImVec2, yesFunction = None, noFunction = None):
         imgui.open_popup(title)
