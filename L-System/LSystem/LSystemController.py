@@ -1,6 +1,7 @@
+import json
+
 from random import seed, randrange
 from copy import deepcopy
-from sys import maxsize
 
 from .AlphabetFunction import AlphabetFunction
 from .AlphabetOption import AlphabetOption
@@ -159,3 +160,35 @@ class LSystemController:
 
     def __resetToSeed(self):
         seed(self.__seed)
+
+    ### ----- Save and Load Methods -----
+    def save(self, path: str):
+        convertedAlphabet = {char: func.convertToDict() for char, func in self.__alphabet.items()}
+        data = {
+            "alphabet" : convertedAlphabet,
+            "productionRules" : self.__productionRules,
+            "axiom" : self.__axiom,
+            "seed" : self.__seed
+        }      
+
+        with open(path, "w") as file:
+            json.dump(data, file)
+
+    def load(self, path: str):
+        with open(path, "r") as file:
+            data = json.load(file)
+
+        self.setAxiom(data["axiom"])
+        self.setSeed(data["seed"])
+
+        self.__alphabet = {}
+        self.__forwardAlphabet = []
+        for key, func in data["alphabet"].items():
+            option = AlphabetOption(func["alphabetOption"])
+            value = None if func["value"] == None else tuple(func["value"])
+            self.addToAlphabet(key, option, value)
+
+        self.__productionRules = {}
+        for key, rules in data["productionRules"].items():
+            for rule in rules:
+                self.addToProductionRules(key, rule)

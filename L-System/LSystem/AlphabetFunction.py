@@ -5,9 +5,9 @@ from .AlphabetOption import AlphabetOption
 
 class AlphabetFunction:
     def __init__(self, alphabetOption: AlphabetOption, function, valueBounds : tuple[float, float] = None):
+        self.__alphabetOption = alphabetOption
         self.__function = function
         self.__valueBounds = valueBounds
-        self.__alphabetOption = alphabetOption
     
     def execute(self):
         if (self.__function != None):
@@ -31,3 +31,9 @@ class AlphabetFunction:
     
     def getValue(self) -> tuple[float, float]:
         return self.__valueBounds
+    
+    def convertToDict(self) -> dict[str, tuple[float, float]]:
+        return {
+            "alphabetOption" : self.__alphabetOption,
+            "value" : self.__valueBounds
+        }

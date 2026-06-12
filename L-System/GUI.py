@@ -1,10 +1,14 @@
+import json
+
 from imgui_bundle import imgui
 from imgui_bundle.imgui import ImVec2
+from imgui_bundle.portable_file_dialogs import open_file, save_file
 
 from LSystem.LSystemController import LSystemController
 from LSystem.AlphabetOption import AlphabetOption
 
-# TODO Save/Load
+# TODO Load are you sure modal
+# TODO Save/Load error handle
 
 class GUI:
     def __init__(self, lSystemController: LSystemController):
@@ -20,6 +24,7 @@ class GUI:
         self.__showHighNWarning = False
         self.__showRemoveLetterWarning = False
         self.__showRuleLetterWarning = False
+        self.__showLoadWarning = False
 
         self.__updateAxiomCounter()
 
@@ -36,6 +41,8 @@ class GUI:
         self.__axiom = self.__lSystemController.getAxiom()
 
         self.__seed = self.__lSystemController.getSeed()
+
+        self.__loadFilePath = None
 
     def draw(self):
         windowWidth, windowHeight = imgui.get_content_region_avail()
@@ -88,6 +95,10 @@ class GUI:
                         
                 else:
                     imgui.text_wrapped(self.__seed)
+
+            if (imgui.collapsing_header("Save/Load")):
+                self.__createSaveLoadControls(centre)
+
         imgui.end_child()
 
     def __updateAxiomCounter(self):
@@ -395,6 +406,52 @@ class GUI:
             self.__createAreYouSureModal(
                 "Are you sure?",
                 "Are you sure you want to remove this rule?",
+                centre,
+                yesFunction=onYes,
+                noFunction=onNo
+                )
+            
+    def __createSaveLoadControls(self, centre: ImVec2):
+        if (imgui.button("Save Settings", ImVec2(-1, 0))):
+            window = save_file(
+                "Save Settings",
+                "L-System Settings.json",
+                filters=["JSON Files (*.json)", "*.json"]
+            )
+
+            path = window.result()
+            if (path):
+                self.__lSystemController.save(path)
+
+        imgui.begin_disabled(not self.__enableControls)
+        if (imgui.button("Load Settings", ImVec2(-1, 0))):
+            window = open_file(
+                "Load Settings",
+                filters=["JSON Files (*.json)", "*.json"]
+            )
+
+            self.__loadFilePath = window.result()
+            if (self.__loadFilePath):
+                self.__showLoadWarning = True
+
+                
+        imgui.end_disabled()
+
+        if (self.__showLoadWarning):
+            def onYes():
+                self.__lSystemController.load(self.__loadFilePath[0])
+                self.__axiom = self.__lSystemController.getAxiom()
+                self.__settingsChanged = True
+                self.__showLoadWarning = False
+                self.__loadFilePath = None
+            
+            def onNo():
+                self.__showLoadWarning = False
+                self.__loadFilePath = None
+
+            self.__createAreYouSureModal(
+                "Are you sure?",
+                "Loading a file will overwrite your current settings.\nAre you sure you want to continue?",
                 centre,
                 yesFunction=onYes,
                 noFunction=onNo

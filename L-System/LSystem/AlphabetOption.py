@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import StrEnum
 
-class AlphabetOption(Enum):
+class AlphabetOption(StrEnum):
     FORWARD = "Move forward"
     LEFT = "Turn left"
     RIGHT = "Turn right"
