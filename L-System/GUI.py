@@ -98,7 +98,7 @@ class GUI:
                         self.__settingsChanged = True
                         
                 else:
-                    imgui.text_wrapped(self.__seed)
+                    imgui.text_wrapped(str(self.__seed))
 
             if (imgui.collapsing_header("Colour")):
                 colourFlags = imgui.ColorEditFlags_.no_inputs
@@ -402,7 +402,7 @@ class GUI:
             and self.__addRuleRule not in [existingRule.getRule() for existingRule in productionRules.get(self.__addRuleKey, [])] \
             and self.__addRuleProbability > 0
         imgui.begin_disabled(not allowAdd)
-        if (imgui.button("Add Letter", ImVec2(-1, 0))):
+        if (imgui.button("Add Rule", ImVec2(-1, 0))):
             self.__lSystemController.addToProductionRules(
                 self.__addRuleKey,
                 self.__addRuleRule,

@@ -55,14 +55,17 @@ class LSystemController:
         self.__colour = self.__defaultColour
 
     def resetLSystem(self):
+        self.__turtle.resetAngle()
         self.__lSystem = LSystem(self.__alphabet.copy(), self.__axiom, deepcopy(self.__productionRules), self.__forwardAlphabet.copy())
         self.__turtle.setColour(self.__colour)
         self.__resetToSeed()
 
     def createNextGeneration(self):
+        self.__turtle.resetAngle()
         self.__lSystem.createNextGeneration()
 
     def createNthGeneration(self, n: int):
+        self.__turtle.resetAngle()
         if (n < self.getCurrentGenerationCount() or n == 0):
             self.__resetToSeed()
         self.__lSystem.createNthGeneration(n)
@@ -188,6 +191,8 @@ class LSystemController:
             "colour"            : tuple(self.__colour)
         }      
 
+        if (not path.lower().endswith(".json")):
+            path += ".json"
         with open(path, "w") as file:
             json.dump(data, file)
 

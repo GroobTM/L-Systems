@@ -1,0 +1,1 @@
+{"alphabet": {"F": {"alphabetOption": "Move forward", "value": [10, 10]}, "+": {"alphabetOption": "Turn left", "value": [90, 90]}, "-": {"alphabetOption": "Turn right", "value": [90, 90]}}, "productionRules": {"F": [{"rule": "F+F-F-F+F", "probability": 1.0}]}, "axiom": "F", "seed": -24328502, "colour": [1.0, 0.0, 0.970059871673584, 1.0]}

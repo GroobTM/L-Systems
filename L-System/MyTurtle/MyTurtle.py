@@ -9,10 +9,13 @@ class MyTurtle(ABC):
     def __init__(self):
         self.__x = 0
         self.__y = 0
-        self.__angle = 0
         self.__stack = Stack()
         self.__lines = None
         self.__lineCounter = 0
+        self.resetAngle()
+
+    def resetAngle(self):
+        self.__angle = 0
 
         self.__sin = 0.0
         self.__cos = 1.0
