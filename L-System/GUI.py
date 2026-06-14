@@ -187,6 +187,7 @@ class GUI:
                 self.__lSystemController.executeCurrentGeneration()
                 self.__updateAxiomCounter()
                 self.__showGenerationLengthWarning = False
+                self.__enableControls = False
 
             if (imgui.button("Cancel", ImVec2(-1, 0))):
                 imgui.close_current_popup()
