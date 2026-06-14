@@ -19,6 +19,7 @@ class GUI:
         self.__showAlphabetWarning = False
         self.__showGenerationLengthWarning = False
         self.__showHighNWarning = False
+        self.__showResetToDefaultWarning = False
         self.__showRemoveLetterWarning = False
         self.__showRuleLetterWarning = False
         self.__showLoadWarning = False
@@ -133,8 +134,7 @@ class GUI:
             self.__processReset()
         
         if (imgui.button("Reset to Default", ImVec2(-1, 0))):
-            self.__lSystemController.setToDefaults()
-            self.__processReset()
+            self.__showResetToDefaultWarning = True
         
         # ----- Incompatible Alphabet Modal -----
         if (self.__showAlphabetWarning):
@@ -193,6 +193,24 @@ class GUI:
                 self.__lSystemController.createNthGeneration(self.__currentAxiom)
                 self.__showGenerationLengthWarning = False
             imgui.end_popup()
+
+        # ----- Reset To Default -----
+        if (self.__showResetToDefaultWarning):
+            def onYes():
+                self.__lSystemController.setToDefaults()
+                self.__processReset()
+                self.__showResetToDefaultWarning = False
+            
+            def onNo():
+                self.__showResetToDefaultWarning = False
+
+            self.__createAreYouSureModal(
+                "Are You Sure?",
+                "Resetting to default will overwrite any custom settings. Are you sure you want to continue?",
+                centre,
+                yesFunction=onYes,
+                noFunction=onNo
+                )
 
     def __processReset(self):
         if (self.__lSystemController.isAlphabetCompatible()):
